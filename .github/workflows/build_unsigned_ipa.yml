@@ -25,12 +25,21 @@ jobs:
 
       - name: Disable code signing
         run: |
-          PBXPROJ="ios/Runner.xcodeproj/project.pbxproj"
-          sed -i '' 's/DEVELOPMENT_TEAM = [^;]*;/DEVELOPMENT_TEAM = "";/g' "$PBXPROJ"
-          sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' "$PBXPROJ"
-          sed -i '' 's/CODE_SIGN_IDENTITY = .*;/CODE_SIGN_IDENTITY = "";/g' "$PBXPROJ"
-          sed -i '' 's/PROVISIONING_PROFILE_SPECIFIER = [^;]*;/PROVISIONING_PROFILE_SPECIFIER = "";/g' "$PBXPROJ"
-          echo "Code signing disabled"
+          python3 << 'PYEOF'
+          import pathlib
+          pbx = pathlib.Path('ios/Runner.xcodeproj/project.pbxproj')
+          lines = pbx.read_text().split('\n')
+          out = []
+          for line in lines:
+              out.append(line)
+              if line.strip() == 'buildSettings = {':
+                  out.append('\t\t\t\tDEVELOPMENT_TEAM = "";')
+                  out.append('\t\t\t\tCODE_SIGN_STYLE = Manual;')
+                  out.append('\t\t\t\tCODE_SIGN_IDENTITY = "";')
+                  out.append('\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = "";')
+          pbx.write_text('\n'.join(out))
+          print('Code signing disabled')
+          PYEOF
 
       - name: Build iOS release (unsigned)
         run: flutter build ios --release --no-codesign
