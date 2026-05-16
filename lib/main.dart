@@ -11,6 +11,7 @@ import 'pages/editor_page.dart';
 import 'pages/detail_page.dart';
 import 'pages/ai_page.dart';
 import 'pages/settings_page.dart';
+import 'pages/ai_interview_page.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -125,6 +126,7 @@ class AIDiaryApp extends StatelessWidget {
           '/editor': (_) => const EditorPage(),
           '/detail': (_) => const DetailPage(),
           '/ai': (_) => const AIPage(),
+          '/ai-interview': (_) => const AIInterviewPage(),
           '/settings': (_) => const SettingsPage(),
         },
       ),

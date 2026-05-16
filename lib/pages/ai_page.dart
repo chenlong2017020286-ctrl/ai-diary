@@ -171,6 +171,48 @@ class _AIPageState extends State<AIPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // AI Interview - Featured entry
+          Card(
+            color: colorScheme.primaryContainer.withOpacity(0.3),
+            child: InkWell(
+              onTap: () => Navigator.pushNamed(context, '/ai-interview'),
+              borderRadius: BorderRadius.circular(16),
+              child: Padding(
+                padding: const EdgeInsets.all(18),
+                child: Row(children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(Icons.chat, color: Colors.white, size: 26),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('AI 对话写日记',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 4),
+                        Text('AI 像朋友一样提问，帮你完成一篇日记',
+                            style: TextStyle(
+                                fontSize: 13,
+                                color: colorScheme.onSurface.withOpacity(0.6))),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.arrow_forward_ios, size: 16,
+                      color: colorScheme.onSurface.withOpacity(0.3)),
+                ]),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
           // Writing prompts
           _buildSection(
             title: '写作灵感',

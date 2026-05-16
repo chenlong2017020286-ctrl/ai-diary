@@ -206,6 +206,109 @@ $diaryContext
     }
   }
 
+  Future<String> startInterview(DiaryEntry? lastEntry, DateTime now) async {
+    if (!_config.isConfigured) return '请先配置 API Key。';
+
+    final hour = now.hour;
+    final timeOfDay = hour < 6 ? '凌晨' : hour < 9 ? '早晨' : hour < 12 ? '上午' : hour < 14 ? '中午' : hour < 18 ? '下午' : hour < 22 ? '晚上' : '深夜';
+
+    String context = '';
+    if (lastEntry != null) {
+      context = '\n最近日记参考：「${lastEntry.title}」${lastEntry.content.substring(0, lastEntry.content.length > 80 ? 80 : lastEntry.content.length)}';
+    }
+
+    final prompt = '''现在是中国时间$timeOfDay，请用一个自然、温暖的问题引导用户开始写今天的日记。
+$context
+要求：
+- 只问一个问题，30字以内
+- 语气像一个关心你的朋友
+- 不要提"最近日记"，直接进入话题
+- 只返回问题本身，不要加引号或多余解释''';
+
+    try {
+      return await _chat([
+        {'role': 'system', 'content': '你是一个温柔、好奇的日记引导者，每次只问一个问题。'},
+        {'role': 'user', 'content': prompt},
+      ]);
+    } catch (_) {
+      return '今天过得怎么样？有什么想记录的吗？';
+    }
+  }
+
+  Future<String> nextQuestion(List<Map<String, String>> conversation) async {
+    if (!_config.isConfigured) return '';
+
+    final history = conversation
+        .map((m) => '${m['role'] == 'user' ? '用户' : 'AI'}: ${m['content']}')
+        .join('\n');
+
+    final prompt = '''以下是到目前为止的对话：
+$history
+
+请根据用户的回答，自然地追问一个更深层的问题（30字以内）。比如：
+- 追问细节："当时是什么感觉？"
+- 追问原因："你觉得为什么会这样？"
+- 追问关联："这件事让你想起什么了吗？"
+- 转移话题："那今天还有其他新鲜事吗？"
+
+如果已经问了4轮以上，请在问题末尾加上 "(你可以随时说"写日记"来结束对话)"。
+只返回问题本身。''';
+
+    try {
+      return await _chat([
+        {'role': 'system', 'content': '你是一个温柔、好奇的日记引导者，根据对话深入追问。'},
+        {'role': 'user', 'content': prompt},
+      ]);
+    } catch (_) {
+      return '还有什么是你今天想记录的吗？';
+    }
+  }
+
+  Future<Map<String, String>> generateDiaryFromInterview(
+      List<Map<String, String>> conversation) async {
+    if (!_config.isConfigured) {
+      return {'title': '今日日记', 'content': ''};
+    }
+
+    final history = conversation
+        .map((m) => '${m['role'] == 'user' ? '我' : 'AI'}: ${m['content']}')
+        .join('\n');
+
+    final prompt = '''以下是一段日记引导对话。请根据用户的回答，用第一人称（"我"）写一篇流畅自然的日记。
+
+对话内容：
+$history
+
+要求：
+1. 标题：10字以内，用中文
+2. 正文：100-300字，用第一人称，语言自然流畅，不需要提及"AI问我"
+3. 就像用户自己写的日记一样，把对话中提到的经历、感受、想法串联起来
+
+返回JSON格式：
+{
+  "title": "日记标题",
+  "content": "日记正文..."
+}''';
+
+    try {
+      final result = await _chat([
+        {'role': 'system', 'content': '你是一个日记写手，会根据对话生成自然的日记。严格返回JSON格式。'},
+        {'role': 'user', 'content': prompt},
+      ]);
+      final start = result.indexOf('{');
+      final end = result.lastIndexOf('}');
+      if (start >= 0 && end > start) {
+        final json = jsonDecode(result.substring(start, end + 1));
+        return {
+          'title': json['title'] as String? ?? '今日日记',
+          'content': json['content'] as String? ?? '',
+        };
+      }
+    } catch (_) {}
+
+    return {'title': '今日日记', 'content': ''};
+  }
+
   void dispose() {
     _client.close();
   }
