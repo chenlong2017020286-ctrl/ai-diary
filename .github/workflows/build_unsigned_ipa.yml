@@ -23,6 +23,15 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Disable code signing
+        run: |
+          PBXPROJ="ios/Runner.xcodeproj/project.pbxproj"
+          sed -i '' 's/DEVELOPMENT_TEAM = [^;]*;/DEVELOPMENT_TEAM = "";/g' "$PBXPROJ"
+          sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' "$PBXPROJ"
+          sed -i '' 's/CODE_SIGN_IDENTITY = .*;/CODE_SIGN_IDENTITY = "";/g' "$PBXPROJ"
+          sed -i '' 's/PROVISIONING_PROFILE_SPECIFIER = [^;]*;/PROVISIONING_PROFILE_SPECIFIER = "";/g' "$PBXPROJ"
+          echo "Code signing disabled"
+
       - name: Build iOS release (unsigned)
         run: flutter build ios --release --no-codesign
 
