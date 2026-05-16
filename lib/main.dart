@@ -5,6 +5,7 @@ import 'services/database_service.dart';
 import 'services/ai_service.dart';
 import 'services/settings_service.dart';
 import 'models/ai_config.dart';
+import 'models/diary_entry.dart';
 import 'pages/home_page.dart';
 import 'pages/editor_page.dart';
 import 'pages/detail_page.dart';
@@ -37,7 +38,7 @@ class AIDiaryApp extends StatelessWidget {
           ),
           useMaterial3: true,
           scaffoldBackgroundColor: const Color(0xFFF8F9FC),
-          cardTheme: CardTheme(
+          cardTheme: CardThemeData(
             elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
@@ -77,7 +78,7 @@ class AIDiaryApp extends StatelessWidget {
           ),
           useMaterial3: true,
           scaffoldBackgroundColor: const Color(0xFF0F172A),
-          cardTheme: CardTheme(
+          cardTheme: CardThemeData(
             elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
