@@ -26,19 +26,24 @@ jobs:
       - name: Disable code signing
         run: |
           python3 << 'PYEOF'
-          import pathlib
+          import pathlib, re
           pbx = pathlib.Path('ios/Runner.xcodeproj/project.pbxproj')
-          lines = pbx.read_text().split('\n')
-          out = []
-          for line in lines:
-              out.append(line)
-              if line.strip() == 'buildSettings = {':
-                  out.append('\t\t\t\tDEVELOPMENT_TEAM = "";')
-                  out.append('\t\t\t\tCODE_SIGN_STYLE = Manual;')
-                  out.append('\t\t\t\tCODE_SIGN_IDENTITY = "";')
-                  out.append('\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = "";')
-          pbx.write_text('\n'.join(out))
-          print('Code signing disabled')
+          content = pbx.read_text()
+
+          remove_keys = ['DEVELOPMENT_TEAM', 'CODE_SIGN_STYLE', 'CODE_SIGN_IDENTITY',
+                         'PROVISIONING_PROFILE_SPECIFIER', 'PROVISIONING_PROFILE']
+          for key in remove_keys:
+              content = re.sub(rf'^\s*{key}\s*=\s*[^;\n]*;\s*\n', '', content, flags=re.MULTILINE)
+
+          new_settings = (
+              '\t\t\t\tDEVELOPMENT_TEAM = XXXXXXXXXX;\n'
+              '\t\t\t\tCODE_SIGN_STYLE = Manual;\n'
+              '\t\t\t\tCODE_SIGN_IDENTITY = "";\n'
+              '\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = "";\n'
+          )
+          content = content.replace('buildSettings = {\n', f'buildSettings = {{\n{new_settings}')
+          pbx.write_text(content)
+          print('Code signing disabled (fake team + manual)')
           PYEOF
 
       - name: Build iOS release (unsigned)
